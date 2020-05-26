@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/kvnxiao/sort-awesome-lists/github"
 	"github.com/kvnxiao/sort-awesome-lists/logging"
@@ -77,16 +76,8 @@ type Markdown struct {
 func ParseMarkdown(url string) *Markdown {
 	defer fmt.Println(" Done!")
 	logging.Verbose("Retrieving markdown...")
-	now := time.Now()
-	resp, err := requests.Get(url, nil)
-	if err != nil {
-		log.Fatalf("an error occurred retrieving markdown: %v", err)
-	}
-	defer resp.Body.Close()
-	took := time.Now().Sub(now)
-	logging.Verbosef("Markdown retrieved in %v", took.String())
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := ioutil.ReadFile(url)
 	if err != nil {
 		log.Fatalf("couldn't read response body: %v", err)
 	}
@@ -270,7 +261,7 @@ func (md *Markdown) Sort() {
 		start := githubBlock.start
 		for i, repo := range githubBlock.repositories {
 			index := start + i
-			numStr := strings.Replace(fmt.Sprintf("<code>%6s</code>", strconv.Itoa(repo.stars)), " ", "&nbsp;", -1)
+			numStr := strconv.Itoa(repo.stars)
 			indexOfFirstSeparator := strings.Index(repo.text, repo.separator+" ")
 			md.lines[index] = repo.text[:indexOfFirstSeparator] + repo.separator + " **" + numStr + "** " + repo.text[indexOfFirstSeparator+2:]
 		}
